@@ -1,38 +1,43 @@
 <?php
 session_start(); // Start the session
 
-// Function to read responses from the JSON file
-function readResponses($filePath) {
-    if (file_exists($filePath)) {
-        return json_decode(file_get_contents($filePath), true);
-    }
-    return [];
-}
+// Database connection
+$host = 'localhost'; // Change if your database is hosted elsewhere
+$db = 'db_waris'; // Replace with your database name
+$user = 'root'; // Replace with your database username
+$pass = ''; // Replace with your database password
 
-// Read all responses
-$filePath = 'responses.json';
-$responses = readResponses($filePath);
+// Create connection
+$conn = new mysqli($host, $user, $pass, $db);
+
+// Check connection
+if ($conn->connect_error ) {
+    die("Connection failed: " . $conn->connect_error);
+}
 
 // Check if a specific response is requested
 if (isset($_GET['view'])) {
     $index = intval($_GET['view']);
-    if (isset($responses[$index])) {
+    $result = $conn->query("SELECT * FROM `user` WHERE id = $index");
+
+    if ($result->num_rows > 0) {
+        $response = $result->fetch_assoc();
         // Store the response data in session variables
-        $_SESSION['name'] = $responses[$index]['name'];
-        $_SESSION['email'] = $responses[$index]['email'];
-        $_SESSION['feedback'] = $responses[$index]['feedback'];
-        $_SESSION['gender'] = $responses[$index]['gender'];
-        $_SESSION['membership'] = $responses[$index]['membership'];
-        $_SESSION['age'] = $responses[$index]['age'];
-        $_SESSION['country'] = $responses[$index]['country'];
-        $_SESSION['employment'] = $responses[$index]['employment'];
-        $_SESSION['education'] = $responses[$index]['education'];
-        $_SESSION['preferredContact'] = $responses[$index]['preferredContact'];
-        $_SESSION['interests'] = $responses[$index]['interests'];
-        $_SESSION['internetUsage'] = $responses[$index]['internetUsage'];
-        $_SESSION['onlineShopping'] = $responses[$index]['onlineShopping'];
-        $_SESSION['satisfaction'] = $responses[$index]['satisfaction'];
-        $_SESSION['favoriteColor'] = $responses[$index]['favoriteColor'];
+        $_SESSION['name'] = $response['name'];
+        $_SESSION['email'] = $response['email'];
+        $_SESSION['feedback'] = $response['feedback'];
+        $_SESSION['gender'] = $response['gender'];
+        $_SESSION['membership'] = $response['membership'];
+        $_SESSION['age'] = $response['age'];
+        $_SESSION['country'] = $response['country'];
+        $_SESSION['employment'] = $response['employment'];
+        $_SESSION['education'] = $response['education'];
+        $_SESSION['preferredContact'] = $response['preferredContact'];
+        $_SESSION['interests'] = $response['interests'];
+        $_SESSION['internetUsage'] = $response['internetUsage'];
+        $_SESSION['onlineShopping'] = $response['onlineShopping'];
+        $_SESSION['satisfaction'] = $response['satisfaction'];
+        $_SESSION['favoriteColor'] = $response['favoriteColor'];
     } else {
         // Redirect to view page if the index is invalid
         header("Location: view.php");
@@ -43,6 +48,8 @@ if (isset($_GET['view'])) {
     header("Location: view.php");
     exit();
 }
+
+$conn->close();
 ?>
 
 <!DOCTYPE html>
@@ -72,12 +79,11 @@ if (isset($_GET['view'])) {
             border-radius: 5px; /* Optional: Rounded corners */
         }
 
-        h1{
-
+        h1 {
             margin-left: 250px;
         }
 
-        .sidebar h2{
+        .sidebar h2 {
             text-align: center; /* Center text within the sidebar */
             align-items: center;
             margin-top: 2px;
@@ -94,30 +100,26 @@ if (isset($_GET['view'])) {
             height: auto; /* Maintain aspect ratio */
             max-width: 100%; /* Ensure the image is responsive */
         }
-
     </style>
 </head>
 <body>
 
 <div class="sidebar">
-<div class="image-container">
-            <img src="logo-removebg-preview.png" alt="Description of image">
-        </div>
+    <div class="image-container">
+        <img src="logo-removebg-preview.png" alt="Description of image">
+    </div>
     <h2>WARIS</h2>
     <a href="index.php"><i class="fa-solid fa-square-poll-vertical"></i> Take Survey</a>
     <a href="view.php"><i class="fa-solid fa-eye"></i> View All Responses</a>
 </div>
 
-
-
-
-<div > 
+<div>
     <div>
         <br>
         <h1>Form Data Received</h1>
     </div>
 
-    <div class="container">
+    <div class ="container">
 
     <div class="data-item">
         <p><strong>Name:</strong> <?php echo htmlspecialchars($_SESSION['name']); ?></p>
@@ -172,7 +174,6 @@ if (isset($_GET['view'])) {
 
     </div>
 
-    
 </div>
 
 </body>

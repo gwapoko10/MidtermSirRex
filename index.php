@@ -118,33 +118,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Check for errors
     if (empty($errors)) {
-        // Save data to a file
-        $response = [
-            'name' => $name,
-            'email' => $email,
-            'feedback' => $feedback,
-            'gender' => $gender,
-            'membership' => $membership,
-            'age' => $age,
-            'country' => $country,
-            'employment' => $employment,
-            'education' => $education,
-            'preferredContact' => $preferredContact,
-            'interests' => $interests,
-            'internetUsage' => $internetUsage,
-            'onlineShopping' => $onlineShopping,
-            'satisfaction' => $satisfaction,
-            'favoriteColor' => $favoriteColor,
-        ];
+        // Database connection
+        $host = 'localhost'; // Change if your database is hosted elsewhere
+        $db = 'db_waris'; // Replace with your database name
+        $user = 'root'; // Replace with your database username
+        $pass = ''; // Replace with your database password
 
-        // Append the response to a JSON file
-        $filePath = 'responses.json';
-        $currentData = file_exists($filePath) ? json_decode(file_get_contents($filePath), true) : [];
-        $currentData[] = $response;
-        file_put_contents($filePath, json_encode($currentData, JSON_PRETTY_PRINT));
+        // Create connection
+        $conn = new mysqli($host, $user, $pass, $db);
 
-        header("Location: display.php");
-        exit();
+        // Check connection
+        if ($conn->connect_error) {
+            die("Connection failed: " . $conn->connect_error);
+        }
+
+        // Prepare and bind
+        $stmt = $conn->prepare("INSERT INTO `user` (name, email, feedback, gender, membership, age, country, employment, education, preferredContact, interests, internetUsage, onlineShopping, satisfaction, favoriteColor) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("sssssisssssssss", $name, $email, $feedback, $gender, $membership, $age, $country, $employment, $education, $preferredContact, $interests, $internetUsage, $onlineShopping, $satisfaction, $favoriteColor);
+
+        // Execute the statement
+        if ($stmt->execute()) {
+            header("Location: display.php");
+            exit();
+        } else {
+            echo "Error: " . $stmt->error;
+        }
+
+        // Close connections
+        $stmt->close();
+        $conn->close();
     }
 }
 ?>
@@ -216,7 +218,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div class="question-container">
             <label for="feedback">3. Please provide your feedback:</label>
             <textarea id="feedback" name="feedback" ><?php echo isset($feedback) ? $feedback : ''; ?></textarea>
-            <?php if (isset($errors['feedback'])) echo '<div class="error">' . $errors['feedback'] . '</div>'; ?>
+ <?php if (isset($errors['feedback'])) echo '<div class="error">' . $errors['feedback'] . '</div>'; ?>
         </div>
         <br>
         <div class="question-container">
@@ -274,6 +276,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <input type="checkbox" name="interests[]" value="reading" <?php echo (isset($interests) && in_array('reading', explode(", ", $interests))) ? 'checked' : ''; ?>> Reading
         </div>
         <br>
+        
         <div class="question-container">
             <label for="internetUsage">12. How often do you use the internet?</label>
             <input type="text" id="internetUsage" name="internetUsage" value="<?php echo isset($internetUsage) ? $internetUsage : ''; ?>" >
